@@ -87,18 +87,19 @@ const ServiceCard: React.FC<{
       </div>
       
        {/* Contract Info & Actions */}
-       <div className="border-t border-gray-200/80 pt-3 mt-4 space-y-2">
-            <div className="flex justify-between items-center">
-                <p className="text-sm text-gray-600">{t('serviceCard.contractCount', { count: contractCount })}</p>
+       <div className="border-t border-gray-200/80 pt-3 mt-4 flex items-center">
+            <div className="flex items-center gap-2">
+                <span className={`text-sm font-medium px-3 py-1 rounded-full ${contractCount > 0 ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-600'}`}>
+                    {t('serviceCard.contractCount', { count: contractCount })}
+                </span>
                 {contractCount > 0 && (
-                    <Button 
+                    <button 
                         onClick={handleFilterContracts} 
-                        variant="ghost" 
-                        size="sm" 
-                        icon={<FilterIcon className="w-4 h-4" />}
+                        className="p-2 text-gray-500 hover:text-blue-600 rounded-full hover:bg-blue-100 transition-colors"
+                        title={t('serviceCard.filterContracts')}
                     >
-                        {t('serviceCard.filterContracts')}
-                    </Button>
+                        <FilterIcon className="w-4 h-4" />
+                    </button>
                 )}
             </div>
        </div>
