@@ -1,35 +1,18 @@
 import React, { useState } from 'react';
-import AdminPanel from './components/admin/AdminPanel';
-import Sidebar from './components/Sidebar';
-import DashboardPage from './components/dashboard/DashboardPage';
-import ServicePanel from './components/services/ServicePanel';
-import AppHeader from './components/common/AppHeader';
+import { Switch, Route, Redirect } from './lib/router';
 import { useAuth } from './hooks/useAuth';
 import LoginPage from './components/auth/LoginPage';
+import MainLayout from './components/MainLayout';
+import AdminPanel from './components/admin/AdminPanel';
+import DashboardPage from './components/dashboard/DashboardPage';
+import ServicePanel from './components/services/ServicePanel';
 import ContractPanel from './components/contracts/ContractPanel';
-
-export type Page = 'dashboard' | 'people' | 'services' | 'contracts';
+import LandingPage from './LandingPage';
 
 const App: React.FC = () => {
-  const [activePage, setActivePage] = useState<Page>('dashboard');
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const { user, isLoading } = useAuth();
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
-  const renderPage = () => {
-    switch (activePage) {
-      case 'dashboard':
-        return <DashboardPage />;
-      case 'people':
-        return <AdminPanel isSidebarCollapsed={isSidebarCollapsed} />;
-      case 'services':
-        return <ServicePanel isSidebarCollapsed={isSidebarCollapsed} />;
-      case 'contracts':
-        return <ContractPanel isSidebarCollapsed={isSidebarCollapsed} />;
-      default:
-        return <DashboardPage />;
-    }
-  };
-  
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-100">
@@ -38,25 +21,43 @@ const App: React.FC = () => {
     );
   }
 
-  if (!user) {
-    return <LoginPage />;
-  }
-
   return (
-    <div className="bg-gray-100 min-h-screen flex">
-      <Sidebar 
-        activePage={activePage} 
-        onPageChange={setActivePage}
-        isCollapsed={isSidebarCollapsed}
-        onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-      />
-      <div className="flex-1 flex flex-col h-screen overflow-hidden">
-        <AppHeader />
-        <main className="flex-1 overflow-y-auto">
-          {renderPage()}
-        </main>
-      </div>
-    </div>
+    <Switch>
+      <Route path="/" component={LandingPage} />
+      <Route path="/login">
+        { user ? <Redirect to="/app/dashboard" /> : <LoginPage /> }
+      </Route>
+
+      <Route path="/app/:rest*">
+        { !user ? <Redirect to="/login" /> : (
+            <MainLayout
+              isSidebarCollapsed={isSidebarCollapsed}
+              onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+            >
+              <Switch>
+                <Route path="/app/dashboard" component={DashboardPage} />
+                <Route path="/app/people">
+                  <AdminPanel isSidebarCollapsed={isSidebarCollapsed} />
+                </Route>
+                <Route path="/app/services">
+                  <ServicePanel isSidebarCollapsed={isSidebarCollapsed} />
+                </Route>
+                <Route path="/app/contracts">
+                  <ContractPanel isSidebarCollapsed={isSidebarCollapsed} />
+                </Route>
+                <Route path="/app">
+                  <Redirect to="/app/dashboard" />
+                </Route>
+              </Switch>
+            </MainLayout>
+          )
+        }
+      </Route>
+
+      <Route>
+        <Redirect to="/" />
+      </Route>
+    </Switch>
   );
 };
 

@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import { useForm, SubmitHandler } from 'react-hook-form';
+// FIX: Corrected react-hook-form imports by using the 'type' keyword for type-only imports.
+import { useForm, type SubmitHandler } from 'react-hook-form';
 import { useI18n } from '../../hooks/useI18n';
 import { useAuth } from '../../hooks/useAuth';
 import Input from '../common/Input';
 import Button from '../common/Button';
+import { useLocation } from '../../lib/router';
 
 type LoginFormInputs = {
   username: string;
@@ -13,6 +15,7 @@ type LoginFormInputs = {
 const LoginPage: React.FC = () => {
   const { t } = useI18n();
   const { login } = useAuth();
+  const [, setLocation] = useLocation();
   const { register, handleSubmit, formState: { errors } } = useForm<LoginFormInputs>();
   const [loginError, setLoginError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -22,9 +25,10 @@ const LoginPage: React.FC = () => {
     setLoginError(null);
     try {
       await login(data.username, data.password_sent);
-      // Navigation will be handled by the App component's conditional rendering
+      setLocation('/app/dashboard');
     } catch (error) {
-      if (error instanceof Error && error.message.includes('credentials')) {
+      console.log(error);
+      if (error instanceof Error && error.message.includes('Invalid credentials')) {
         setLoginError(t('login.error.invalidCredentials'));
       } else {
         setLoginError(t('login.error.generic'));

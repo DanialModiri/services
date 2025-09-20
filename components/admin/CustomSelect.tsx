@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect, useLayoutEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useI18n } from '../../hooks/useI18n';
-import { ChevronDownIcon, CheckIcon } from '../icons/AppleIcons';
-import { FieldError } from 'react-hook-form';
+import { ChevronDownIcon, CheckIcon, SearchIcon } from '../icons/AppleIcons';
+// FIX: Corrected react-hook-form imports by using the 'type' keyword for type-only imports.
+import { type FieldError } from 'react-hook-form';
 
 interface CustomSelectProps {
   label?: string;
@@ -12,9 +13,15 @@ interface CustomSelectProps {
   error?: FieldError;
   placeholder?: string;
   buttonClassName?: string;
+  isSearchable?: boolean;
+  onSearch?: (term: string) => void;
+  isLoading?: boolean;
 }
 
-const CustomSelect: React.FC<CustomSelectProps> = ({ label, options, value, onChange, error, placeholder, buttonClassName }) => {
+const CustomSelect: React.FC<CustomSelectProps> = ({ 
+    label, options, value, onChange, error, placeholder, buttonClassName,
+    isSearchable = false, onSearch, isLoading = false
+}) => {
   const { t } = useI18n();
   const [isOpen, setIsOpen] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -52,7 +59,7 @@ const CustomSelect: React.FC<CustomSelectProps> = ({ label, options, value, onCh
     if (isOpen) {
       updatePosition();
     }
-  }, [isOpen, updatePosition]);
+  }, [isOpen, updatePosition, options, isLoading]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -91,6 +98,7 @@ const CustomSelect: React.FC<CustomSelectProps> = ({ label, options, value, onCh
   const handleSelect = (option: typeof options[number]) => {
     onChange(getOptionValue(option));
     setIsOpen(false);
+    onSearch?.(''); // Reset search on select
   };
   
   const selectedOption = options.find(opt => getOptionValue(opt) === value);
@@ -101,27 +109,53 @@ const CustomSelect: React.FC<CustomSelectProps> = ({ label, options, value, onCh
   const DropdownList = (
     <ul
         ref={listRef}
-        className="fixed z-50 bg-white shadow-lg rounded-xl max-h-60 overflow-auto border border-gray-200 animate-scale-in"
+        className="fixed z-50 bg-white shadow-lg rounded-xl flex flex-col max-h-72 border border-gray-200 animate-scale-in"
         style={{
             top: `${position.top}px`,
             left: `${position.left}px`,
             width: `${position.width}px`,
             transformOrigin: position.transformOrigin,
         }}
+        onMouseDown={(e) => e.stopPropagation()}
         role="listbox"
     >
-        {options.map((option, index) => (
-            <li
-                key={getOptionValue(option) + '-' + index}
-                className="px-4 py-2.5 text-base text-gray-800 hover:bg-gray-100 cursor-pointer flex justify-between items-center"
-                onClick={() => handleSelect(option)}
-                role="option"
-                aria-selected={value === getOptionValue(option)}
-            >
-                <span className="truncate">{getOptionLabel(option)}</span>
-                {value === getOptionValue(option) && <CheckIcon className="w-5 h-5 text-blue-600" />}
+        {isSearchable && (
+            <li className="p-2 sticky top-0 bg-white z-10 border-b border-gray-100">
+                <div className="relative">
+                    <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                        <SearchIcon className="h-5 w-5 text-gray-400" />
+                    </div>
+                    <input
+                        type="text"
+                        placeholder="جستجو..."
+                        className="w-full pr-10 pl-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                        onChange={(e) => onSearch?.(e.target.value)}
+                        autoFocus
+                        onClick={(e) => e.stopPropagation()}
+                    />
+                </div>
             </li>
-        ))}
+        )}
+        <div className="overflow-y-auto">
+            {isLoading ? (
+                <li className="px-4 py-3 text-base text-gray-500 text-center">در حال جستجو...</li>
+            ) : options.length > 0 ? (
+                options.map((option, index) => (
+                    <li
+                        key={getOptionValue(option) + '-' + index}
+                        className="px-4 py-2.5 text-base text-gray-800 hover:bg-gray-100 cursor-pointer flex justify-between items-center"
+                        onClick={() => handleSelect(option)}
+                        role="option"
+                        aria-selected={value === getOptionValue(option)}
+                    >
+                        <span className="truncate">{getOptionLabel(option)}</span>
+                        {value === getOptionValue(option) && <CheckIcon className="w-5 h-5 text-blue-600" />}
+                    </li>
+                ))
+            ) : (
+                <li className="px-4 py-3 text-base text-gray-500 text-center">موردی یافت نشد.</li>
+            )}
+        </div>
     </ul>
   );
 

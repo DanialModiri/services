@@ -1,11 +1,9 @@
 import React from 'react';
+import { Link, useRoute } from '../lib/router';
 import { useI18n } from '../hooks/useI18n';
 import { DashboardIcon, UsersIcon, ServicesIcon, CollapseSidebarIcon, ExpandSidebarIcon, ContractIcon } from './icons/AppleIcons';
-import { Page } from '../App';
 
 interface SidebarProps {
-  activePage: Page;
-  onPageChange: (page: Page) => void;
   isCollapsed: boolean;
   onToggleCollapse: () => void;
 }
@@ -13,38 +11,35 @@ interface SidebarProps {
 const NavItem: React.FC<{
   icon: React.ReactNode;
   label: string;
-  isActive?: boolean;
   isCollapsed: boolean;
-  onClick: () => void;
-}> = ({ icon, label, isActive = false, isCollapsed, onClick }) => {
+  to: string;
+}> = ({ icon, label, isCollapsed, to }) => {
   const tooltip = isCollapsed ? label : '';
+  const [isActive] = useRoute(to);
   
   return (
     <li title={tooltip}>
-      <a
-        href="#"
-        onClick={(e) => {
-          e.preventDefault();
-          onClick();
-        }}
-        className={`flex items-center p-3 my-1 rounded-lg transition-colors duration-200 ${
+      <Link
+        to={to}
+      >
+        <a className={`flex items-center p-3 my-1 rounded-lg transition-colors duration-200 ${
           isCollapsed ? 'justify-center' : ''
         } ${
           isActive
             ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30'
             : 'text-gray-600 hover:bg-gray-200/60'
-        }`}
-      >
-        <span className="w-6 h-6">{icon}</span>
-        {!isCollapsed && (
-          <span className="mr-4 font-semibold text-base whitespace-nowrap">{label}</span>
-        )}
-      </a>
+        }`}>
+            <span className="w-6 h-6">{icon}</span>
+            {!isCollapsed && (
+              <span className="mr-4 font-semibold text-base whitespace-nowrap">{label}</span>
+            )}
+        </a>
+      </Link>
     </li>
   );
 };
 
-const Sidebar: React.FC<SidebarProps> = ({ activePage, onPageChange, isCollapsed, onToggleCollapse }) => {
+const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggleCollapse }) => {
   const { t } = useI18n();
 
   return (
@@ -59,29 +54,25 @@ const Sidebar: React.FC<SidebarProps> = ({ activePage, onPageChange, isCollapsed
           <NavItem
             icon={<DashboardIcon />}
             label={t('sidebar.dashboard')}
-            isActive={activePage === 'dashboard'}
-            onClick={() => onPageChange('dashboard')}
+            to="/app/dashboard"
             isCollapsed={isCollapsed}
           />
           <NavItem
             icon={<UsersIcon />}
             label={t('sidebar.people')}
-            isActive={activePage === 'people'}
-            onClick={() => onPageChange('people')}
+            to="/app/people"
             isCollapsed={isCollapsed}
           />
           <NavItem
             icon={<ServicesIcon />}
             label={t('sidebar.services')}
-            isActive={activePage === 'services'}
-            onClick={() => onPageChange('services')}
+            to="/app/services"
             isCollapsed={isCollapsed}
           />
           <NavItem
             icon={<ContractIcon />}
             label={t('sidebar.contracts')}
-            isActive={activePage === 'contracts'}
-            onClick={() => onPageChange('contracts')}
+            to="/app/contracts"
             isCollapsed={isCollapsed}
           />
         </ul>

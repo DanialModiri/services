@@ -1,4 +1,4 @@
-import { Person, Service, StandardAction, User, Contract } from '../types';
+import { Person, Service, StandardAction, User, Contract, Personnel, ServiceArea } from '../types';
 
 export const mockUsers: (User & { password?: string })[] = [
     {
@@ -173,6 +173,39 @@ export const mockServices: Service[] = [
   { id: 8, code: 'REG-002', title: 'ثبت تغییرات شرکت', area: 'REGISTRATION', defaultPrice: 8000000, defaultDuration: 0, status: 'ACTIVE', standardActions: [] },
 ];
 
+export const mockPersonnel: Personnel[] = [
+    {
+        id: 1,
+        userId: 1, // Abbas Hasanvand
+        name: 'عباس حسنوند',
+        nationalId: '1234567890',
+        position: 'مدیر ارشد فنی',
+        specialization: ['ACCOUNTING', 'TAX'],
+        mobile: '09121112233',
+        email: 'abbas.h@example.com'
+    },
+    {
+        id: 2,
+        userId: 2, // User Test
+        name: 'کاربر تست',
+        nationalId: '0987654321',
+        position: 'کارشناس ثبت',
+        specialization: ['REGISTRATION'],
+        mobile: '09124445566',
+        email: 'user.test@example.com'
+    },
+    {
+        id: 3,
+        userId: 3, // new user
+        name: 'رضا احمدی',
+        nationalId: '1122334455',
+        position: 'مشاور مالیاتی',
+        specialization: ['TAX'],
+        mobile: '09127778899',
+        email: 'reza.a@example.com'
+    }
+];
+
 export const mockContracts: Contract[] = [
     {
         id: 1,
@@ -184,7 +217,11 @@ export const mockContracts: Contract[] = [
         endDate: '2025-03-19',
         totalAmount: 120000000,
         status: 'IN_PROGRESS',
-        contractServices: [],
+        contractServices: [
+            { id: 'cs1-1', serviceId: 1, initialDurationDays: 365, price: 50000000, selectedStandardActionIds: ['act1', 'act2'] },
+            { id: 'cs1-2', serviceId: 7, initialDurationDays: 365, price: 70000000, selectedStandardActionIds: [] }
+        ],
+        contractAccessSettings: [],
     },
     {
         id: 2,
@@ -196,7 +233,10 @@ export const mockContracts: Contract[] = [
         endDate: '2024-09-21',
         totalAmount: 45000000,
         status: 'CONFIRMED',
-        contractServices: [],
+        contractServices: [
+            { id: 'cs2-1', serviceId: 2, initialDurationDays: 92, price: 45000000, selectedStandardActionIds: [] }
+        ],
+        contractAccessSettings: [],
     },
     {
         id: 3,
@@ -208,7 +248,11 @@ export const mockContracts: Contract[] = [
         endDate: '2024-03-01',
         totalAmount: 30000000,
         status: 'CLOSED',
-        contractServices: [],
+        contractServices: [
+            { id: 'cs3-1', serviceId: 3, initialDurationDays: 90, price: 25000000, selectedStandardActionIds: [] },
+            { id: 'cs3-2', serviceId: 8, initialDurationDays: 30, price: 5000000, selectedStandardActionIds: [] }
+        ],
+        contractAccessSettings: [],
     },
     {
         id: 4,
@@ -220,7 +264,10 @@ export const mockContracts: Contract[] = [
         endDate: '2024-08-15',
         totalAmount: 8000000,
         status: 'REGISTERED',
-        contractServices: [],
+        contractServices: [
+            { id: 'cs4-1', serviceId: 4, initialDurationDays: 14, price: 8000000, selectedStandardActionIds: [] }
+        ],
+        contractAccessSettings: [],
     },
      {
         id: 5,
@@ -232,7 +279,10 @@ export const mockContracts: Contract[] = [
         endDate: '2024-06-10',
         totalAmount: 60000000,
         status: 'FINISHED',
-        contractServices: [],
+        contractServices: [
+             { id: 'cs5-1', serviceId: 5, initialDurationDays: 31, price: 60000000, selectedStandardActionIds: [] }
+        ],
+        contractAccessSettings: [],
     },
     {
         id: 6,
@@ -244,6 +294,9 @@ export const mockContracts: Contract[] = [
         endDate: '2025-01-20',
         totalAmount: 25000000,
         status: 'IN_PROGRESS',
-        contractServices: [],
+        contractServices: [
+            { id: 'cs6-1', serviceId: 6, initialDurationDays: 184, price: 25000000, selectedStandardActionIds: [] }
+        ],
+        contractAccessSettings: [],
     },
 ];

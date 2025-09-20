@@ -1,5 +1,5 @@
-import { Person, Service, User, Contract } from '../types';
-import { mockPeople, mockServices, mockUsers, mockContracts } from './mockData';
+import { Person, Service, User, Contract, Personnel, ContractFilters } from '../types';
+import { mockPeople, mockServices, mockUsers, mockContracts, mockPersonnel } from './mockData';
 import { messages } from '../locales/fa';
 
 // We create in-memory copies to simulate a mutable data source
@@ -7,6 +7,7 @@ let people: Person[] = JSON.parse(JSON.stringify(mockPeople));
 let services: Service[] = JSON.parse(JSON.stringify(mockServices));
 let mutableUsers: (User & { password?: string })[] = JSON.parse(JSON.stringify(mockUsers));
 let contracts: Contract[] = JSON.parse(JSON.stringify(mockContracts));
+let personnel: Personnel[] = JSON.parse(JSON.stringify(mockPersonnel));
 
 let nextPersonId = people.length > 0 ? Math.max(...people.map(p => p.id)) + 1 : 1;
 let nextServiceId = services.length > 0 ? Math.max(...services.map(s => s.id)) + 1 : 1;
@@ -57,7 +58,8 @@ export const getCurrentUser = async (token: string): Promise<User> => {
         
         const { password, ...userWithoutPassword } = user;
         return simulateRequest(userWithoutPassword);
-    } catch (e) {
+    } catch (error) {
+        console.log(error);
         throw new Error('Invalid token');
     }
 };
@@ -188,13 +190,33 @@ export const deleteService = async (id: number): Promise<{ id: number }> => {
     return simulateRequest({ id });
 };
 
+// --- Personnel API ---
+
+export const getPersonnel = async (searchTerm?: string): Promise<Personnel[]> => {
+    let result = personnel;
+    const term = searchTerm?.toLowerCase().trim();
+
+    if (term) {
+        result = personnel.filter(p => {
+            return [
+                p.name.toLowerCase(),
+                p.position.toLowerCase(),
+                p.nationalId,
+            ].some(value => value.includes(term));
+        });
+    }
+    return simulateRequest(result);
+};
+
 // --- Contracts API ---
 
-export const getContracts = async (searchTerm?: string): Promise<Contract[]> => {
+export const getContracts = async (searchTerm?: string, filters?: ContractFilters): Promise<Contract[]> => {
     let result = contracts;
+
+    // Search term filtering
     const term = searchTerm?.toLowerCase().trim();
     if (term) {
-        result = contracts.filter(contract => {
+        result = result.filter(contract => {
             const customer = people.find(p => p.id === contract.customerId);
             const customerName = customer ? (customer.personType === 'REAL' ? `${customer.firstName} ${customer.lastName}` : customer.name) : '';
             
@@ -213,8 +235,30 @@ export const getContracts = async (searchTerm?: string): Promise<Contract[]> => 
             ].some(value => value?.toLowerCase().includes(term));
         });
     }
+
+    // Advanced filtering
+    if (filters) {
+        if (filters.startDate) {
+            const filterStartDate = new Date(filters.startDate).getTime();
+            result = result.filter(c => new Date(c.startDate).getTime() >= filterStartDate);
+        }
+        if (filters.endDate) {
+            const filterEndDate = new Date(filters.endDate).getTime();
+            result = result.filter(c => new Date(c.startDate).getTime() <= filterEndDate);
+        }
+        if (filters.serviceAreas && filters.serviceAreas.length > 0) {
+            result = result.filter(c => filters.serviceAreas!.includes(c.serviceArea));
+        }
+        if (filters.serviceIds && filters.serviceIds.length > 0) {
+            result = result.filter(c => 
+                c.contractServices.some(cs => cs.serviceId !== null && filters.serviceIds!.includes(cs.serviceId))
+            );
+        }
+    }
+
     return simulateRequest(result);
 };
+
 
 export const getContractById = async (id: number): Promise<Contract> => {
     const contract = contracts.find(c => c.id === id);

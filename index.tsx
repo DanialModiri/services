@@ -7,6 +7,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { NotificationProvider } from './hooks/useNotifier';
 import { ConfirmProvider } from './hooks/useConfirm';
 import { AuthProvider } from './hooks/useAuth';
+import { Router } from './lib/router';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -29,7 +30,9 @@ root.render(
         <NotificationProvider>
           <ConfirmProvider>
             <AuthProvider>
-              <App />
+              <Router>
+                <App />
+              </Router>
             </AuthProvider>
           </ConfirmProvider>
         </NotificationProvider>

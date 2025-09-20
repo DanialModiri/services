@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useI18n } from '../../hooks/useI18n';
-import { Service, ServiceArea, ServiceStatus } from '../../types';
-import { EditIcon, DeleteIcon } from '../icons/AppleIcons';
+import { Service, ServiceArea, ServiceStatus, Contract } from '../../types';
+import { EditIcon, DeleteIcon, FilterIcon } from '../icons/AppleIcons';
 import Pagination from '../admin/Pagination';
 
 const formatPrice = (price: number): string => {
@@ -22,6 +22,7 @@ const statusColors: { [key in ServiceStatus]: string } = {
 
 interface ServiceListProps {
   services: Service[];
+  allContracts: Contract[];
   onEdit: (service: Service) => void;
   onDelete: (id: number) => void;
   currentPage: number;
@@ -30,7 +31,12 @@ interface ServiceListProps {
   totalItems: number;
 }
 
-const ServiceCard: React.FC<{ service: Service; onEdit: () => void; onDelete: () => void; }> = ({ service, onEdit, onDelete }) => {
+const ServiceCard: React.FC<{ 
+  service: Service; 
+  contractCount: number;
+  onEdit: () => void; 
+  onDelete: () => void; 
+}> = ({ service, contractCount, onEdit, onDelete }) => {
   const { t } = useI18n();
   const editAriaLabel = t('serviceCard.editAriaLabel', { title: service.title });
   const deleteAriaLabel = t('serviceCard.deleteAriaLabel', { title: service.title });
@@ -70,6 +76,11 @@ const ServiceCard: React.FC<{ service: Service; onEdit: () => void; onDelete: ()
           </div>
       </div>
       
+       {/* Contract Info */}
+       <div className="border-t border-gray-200/80 pt-3 mt-4 space-y-2">
+            <p className="text-sm text-gray-600">{t('serviceCard.contractCount', { count: contractCount })}</p>
+       </div>
+
       {/* Footer */}
       <div className="border-t border-gray-200/80 pt-3 mt-4 flex justify-end">
           <span className={`text-sm font-bold px-3 py-1 rounded-full ${statusColors[service.status]}`}>
@@ -81,8 +92,20 @@ const ServiceCard: React.FC<{ service: Service; onEdit: () => void; onDelete: ()
 };
 
 
-const ServiceList: React.FC<ServiceListProps> = ({ services, onEdit, onDelete, currentPage, totalPages, onPageChange, totalItems }) => {
+const ServiceList: React.FC<ServiceListProps> = ({ services, allContracts, onEdit, onDelete, currentPage, totalPages, onPageChange, totalItems }) => {
   const { t } = useI18n();
+
+  const contractCounts = useMemo(() => {
+    const counts = new Map<number, number>();
+    services.forEach(service => {
+        const count = allContracts.filter(contract => 
+            contract.contractServices.some(cs => cs.serviceId === service.id)
+        ).length;
+        counts.set(service.id, count);
+    });
+    return counts;
+  }, [services, allContracts]);
+
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
@@ -91,6 +114,7 @@ const ServiceList: React.FC<ServiceListProps> = ({ services, onEdit, onDelete, c
             <ServiceCard 
               key={service.id} 
               service={service}
+              contractCount={contractCounts.get(service.id) || 0}
               onEdit={() => onEdit(service)}
               onDelete={() => onDelete(service.id)}
             />

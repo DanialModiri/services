@@ -21,7 +21,7 @@ const ContractPanel: React.FC<ContractPanelProps> = ({ isSidebarCollapsed }) => 
   const queryClient = useQueryClient();
   const { notify } = useNotifier();
   const { confirm } = useConfirm();
-
+  
   const [activeContractId, setActiveContractId] = useState<number | 'new' | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -35,9 +35,9 @@ const ContractPanel: React.FC<ContractPanelProps> = ({ isSidebarCollapsed }) => 
   const { data: peopleData } = useQuery({ queryKey: ['people', ''], queryFn: () => api.getPeople('') });
 
   const handleRefresh = () => {
-    queryClient.invalidateQueries({ queryKey: ['contracts'] });
+    queryClient.invalidateQueries({ queryKey: ['contracts', searchTerm] });
   };
-
+  
   const addContractMutation = useMutation({
     mutationFn: (contract: Omit<Contract, 'id'>) => api.addContract(contract),
     onSuccess: () => {
@@ -112,7 +112,7 @@ const ContractPanel: React.FC<ContractPanelProps> = ({ isSidebarCollapsed }) => 
   }
 
   const renderContent = () => {
-    if (isFetching) {
+    if (isFetching && !paginatedContracts.length) {
       return (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
           {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)}
@@ -140,6 +140,14 @@ const ContractPanel: React.FC<ContractPanelProps> = ({ isSidebarCollapsed }) => 
       />
     );
   };
+  
+  const pageActions = (
+    <div className="flex items-center gap-2">
+        <Button onClick={() => setActiveContractId('new')} icon={<PlusIcon />}>
+          {t('contractsPanel.newContract')}
+        </Button>
+    </div>
+  );
 
   return (
     <div className="container mx-auto p-4 sm:p-6 lg:p-8">
@@ -150,14 +158,11 @@ const ContractPanel: React.FC<ContractPanelProps> = ({ isSidebarCollapsed }) => 
           searchPlaceholder={t('contractsPanel.searchPlaceholder')}
           onRefresh={handleRefresh}
           isRefreshing={isFetching && !isLoading}
-          actionButton={
-            <Button onClick={() => setActiveContractId('new')} icon={<PlusIcon />}>
-              {t('contractsPanel.newContract')}
-            </Button>
-          }
+          actionButton={pageActions}
        />
       
       {renderContent()}
+
     </div>
   );
 };

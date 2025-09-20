@@ -105,6 +105,7 @@ const MultiSelect: React.FC<MultiSelectProps> = ({ label, options, selectedValue
             width: `${position.width}px`,
             transformOrigin: position.transformOrigin,
         }}
+        onMouseDown={(e) => e.stopPropagation()}
         role="listbox"
     >
         {options.map((option) => {

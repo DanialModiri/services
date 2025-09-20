@@ -1,6 +1,8 @@
 export type PersonType = 'REAL' | 'LEGAL';
 export type Gender = 'MALE' | 'FEMALE';
 
+export type Page = 'dashboard' | 'people' | 'services' | 'contracts';
+
 export const OrganizationRoles = [
   "DEFAULT_ORG",
   "CUSTOMER",
@@ -120,6 +122,18 @@ export interface User {
     avatarUrl: string;
 }
 
+// For the new personnel/expert list
+export interface Personnel {
+    id: number;
+    userId: number; // Link to User ID
+    name: string;
+    nationalId: string;
+    position: string;
+    specialization: ServiceArea[];
+    mobile: string;
+    email: string;
+}
+
 // Contract types
 export const ContractStatuses = ['REGISTERED', 'CONFIRMED', 'IN_PROGRESS', 'FINISHED', 'PENDING_FINISH', 'CLOSED'] as const;
 export type ContractStatus = typeof ContractStatuses[number];
@@ -133,6 +147,34 @@ export interface ContractServiceItem {
   selectedStandardActionIds: string[];
 }
 
+// For the new access settings table
+export const ContractRoleTypes = [
+    'SERVICE_CONTACT_CUSTOMER',
+    'CONTRACT_CONTACT_CUSTOMER',
+    'SUPERVISOR_CUSTOMER',
+    'SERVICE_EXPERT_ORG',
+    'CONTRACT_EXPERT_ORG',
+    'SUPERVISOR_ORG'
+] as const;
+export type ContractRoleType = typeof ContractRoleTypes[number];
+
+export const NotificationMethods = [
+    'PORTAL',
+    'SMS',
+    'EMAIL'
+] as const;
+export type NotificationMethod = typeof NotificationMethods[number];
+
+export interface ContractAccessSetting {
+    id: string; // for useFieldArray
+    roleType: ContractRoleType;
+    serviceArea: ServiceArea;
+    personnelId: number | null;
+    notificationMethods: NotificationMethod[];
+    mobile?: string;
+    email?: string;
+}
+
 export interface Contract {
   id: number;
   contractCode: string;
@@ -144,4 +186,12 @@ export interface Contract {
   totalAmount: number;
   status: ContractStatus;
   contractServices: ContractServiceItem[];
+  contractAccessSettings: ContractAccessSetting[];
+}
+
+export interface ContractFilters {
+  serviceIds?: number[];
+  serviceAreas?: ServiceArea[];
+  startDate?: string;
+  endDate?: string;
 }

@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useI18n } from '../../hooks/useI18n';
-import { Service } from '../../types';
+import { Service, Contract } from '../../types';
 import ServiceTable from './ServiceTable';
 import ServiceDetailPage from './ServiceDetailPage';
 import PageHeader from '../common/PageHeader';
@@ -31,6 +31,11 @@ const ServicePanel: React.FC<ServicePanelProps> = ({ isSidebarCollapsed }) => {
   const { data: filteredServices = [], isLoading, isError, isFetching } = useQuery<Service[]>({
       queryKey: ['services', searchTerm],
       queryFn: () => api.getServices(searchTerm),
+  });
+
+  const { data: allContracts = [] } = useQuery<Contract[]>({
+    queryKey: ['contracts-all'],
+    queryFn: () => api.getContracts(),
   });
 
   const handleRefresh = () => {
@@ -133,6 +138,7 @@ const ServicePanel: React.FC<ServicePanelProps> = ({ isSidebarCollapsed }) => {
     return (
         <ServiceTable
             services={paginatedServices}
+            allContracts={allContracts}
             onEdit={(service) => setSelectedServiceId(service.id)}
             onDelete={handleDeleteService}
             currentPage={currentPage}

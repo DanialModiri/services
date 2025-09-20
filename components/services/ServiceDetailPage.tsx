@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { useForm, SubmitHandler, Controller } from 'react-hook-form';
+// FIX: Corrected react-hook-form imports by using the 'type' keyword for type-only imports.
+import { useForm, Controller, useFieldArray, type SubmitHandler } from 'react-hook-form';
 import { useI18n } from '../../hooks/useI18n';
 import { Service, ServiceAreas, ServiceStatuses, StandardAction } from '../../types';
 import CustomSelect from '../admin/CustomSelect';
@@ -11,6 +12,7 @@ import Button from '../common/Button';
 import { useQuery } from '@tanstack/react-query';
 import * as api from '../../api/apiService';
 import SkeletonForm from '../common/SkeletonForm';
+import { formatPrice, parsePrice } from '../../utils/helpers';
 
 interface ServiceDetailPageProps {
   serviceId: number | null;
@@ -23,35 +25,33 @@ type ServiceFormData = Omit<Service, 'id' | 'standardActions'> & {
     standardActions: StandardAction[];
 };
 
-const newServiceDefaults: ServiceFormData = {
+const newServiceWithDefaultAction: ServiceFormData = {
     code: '',
     title: '',
     area: 'ACCOUNTING',
     defaultPrice: 0,
     defaultDuration: 0,
     status: 'ACTIVE',
-    standardActions: [],
-};
-
-// Helper functions for number formatting
-const formatPrice = (value: number | string | undefined): string => {
-  if (value === undefined || value === null || value === '') return '';
-  const num = Number(String(value).replace(/[^۰-۹0-9]/g, ''));
-  if (isNaN(num)) return '';
-  return new Intl.NumberFormat('fa-IR').format(num);
-};
-
-const parsePrice = (value: string): number => {
-  // Replace Persian numerals with English ones for parsing
-  const englishValue = value.replace(/[۰-۹]/g, d => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d)));
-  return Number(englishValue.replace(/[^0-9]/g, ''));
+    standardActions: [{
+        id: crypto.randomUUID(),
+        title: '',
+        actor: 'ORGANIZATION',
+        frequency: 'CALENDAR_MONTH',
+        issuanceDay: 1,
+        prerequisiteActionId: null,
+    }],
 };
 
 
 const ServiceDetailPage: React.FC<ServiceDetailPageProps> = ({ serviceId, onSave, onBack, isSidebarCollapsed }) => {
   const { t } = useI18n();
   const { register, handleSubmit, reset, formState: { errors }, control } = useForm<ServiceFormData>({
-      defaultValues: newServiceDefaults
+      defaultValues: serviceId ? undefined : newServiceWithDefaultAction
+  });
+
+  const { fields, append, remove } = useFieldArray({
+      control,
+      name: "standardActions",
   });
 
   const { data: serviceToEdit, isLoading, isError } = useQuery({
@@ -65,33 +65,22 @@ const ServiceDetailPage: React.FC<ServiceDetailPageProps> = ({ serviceId, onSave
 
   useEffect(() => {
     const observer = new IntersectionObserver(
-        ([entry]) => {
-            setIsStickyBarVisible(!entry.isIntersecting);
-        },
-        { 
-            root: null,
-            threshold: 0,
-        }
+        ([entry]) => { setIsStickyBarVisible(!entry.isIntersecting); },
+        { root: null, threshold: 0, }
     );
 
     const currentRef = inFormActionsRef.current;
-    if (currentRef) {
-        observer.observe(currentRef);
-    }
-
-    return () => {
-        if (currentRef) {
-            observer.unobserve(currentRef);
-        }
-    };
+    if (currentRef) { observer.observe(currentRef); }
+    return () => { if (currentRef) { observer.unobserve(currentRef); } };
   }, [isLoading]);
 
 
   useEffect(() => {
     if (serviceId && serviceToEdit) {
       reset(serviceToEdit);
-    } else {
-      reset(newServiceDefaults);
+    } else if (!serviceId) {
+      // This handles resetting the form in "create" mode, e.g., for "Save and New"
+      reset(newServiceWithDefaultAction);
     }
   }, [serviceId, serviceToEdit, reset]);
 
@@ -115,7 +104,7 @@ const ServiceDetailPage: React.FC<ServiceDetailPageProps> = ({ serviceId, onSave
   const handleSaveAndNew: SubmitHandler<ServiceFormData> = (data) => {
     const dataToSave = processData(data);
     onSave(dataToSave, { stayOnPage: true });
-    reset(newServiceDefaults);
+    reset(newServiceWithDefaultAction);
   };
   
   const translatedOptions = useMemo(() => ({
@@ -216,7 +205,7 @@ const ServiceDetailPage: React.FC<ServiceDetailPageProps> = ({ serviceId, onSave
 
         <div className="border-t my-6"></div>
 
-        <StandardActionsTable control={control} register={register} errors={errors} />
+        <StandardActionsTable control={control} register={register} errors={errors} fields={fields} append={append} remove={remove} />
 
         <div ref={inFormActionsRef} className="border-t pt-6 mt-6">
           {actionButtonsGroup}

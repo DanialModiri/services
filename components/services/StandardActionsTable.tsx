@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
-import { useFieldArray, Control, UseFormRegister, FieldErrors, useWatch, Controller } from 'react-hook-form';
+// FIX: Corrected react-hook-form imports by using the 'type' keyword for type-only imports.
+import { Controller, useWatch, type Control, type UseFormRegister, type FieldErrors, type FieldArrayWithId } from 'react-hook-form';
 import { useI18n } from '../../hooks/useI18n';
 import { Service, StandardAction, ActionFrequencies, ActionActors } from '../../types';
 import { DeleteIcon, PlusIcon } from '../icons/AppleIcons';
@@ -12,15 +13,14 @@ interface StandardActionsTableProps {
   control: Control<FormValues>;
   register: UseFormRegister<FormValues>;
   errors: FieldErrors<FormValues>;
+  fields: FieldArrayWithId<FormValues, "standardActions", "id">[];
+  append: (action: Omit<StandardAction, 'id'> & { id: string }) => void;
+  remove: (index?: number | number[]) => void;
 }
 
-const StandardActionsTable: React.FC<StandardActionsTableProps> = ({ control, register, errors }) => {
+const StandardActionsTable: React.FC<StandardActionsTableProps> = ({ control, register, errors, fields, append, remove }) => {
     const { t } = useI18n();
-    const { fields, append, remove } = useFieldArray({
-        control,
-        name: "standardActions",
-    });
-
+    
     const watchedActions = useWatch({
         control,
         name: 'standardActions',
@@ -71,7 +71,7 @@ const StandardActionsTable: React.FC<StandardActionsTableProps> = ({ control, re
                             <th scope="col" className="px-4 py-3">{t('actionsTable.header.frequency')}</th>
                             <th scope="col" className="px-4 py-3">{t('actionsTable.header.issuanceDay')}</th>
                             <th scope="col" className="px-4 py-3 min-w-[150px]">{t('actionsTable.header.prerequisite')}</th>
-                            <th scope="col" className="px-4 py-3 text-center">{t('actionsTable.header.actions')}</th>
+                            <th scope="col" className="px-4 py-3 text-center sticky left-0 bg-gray-50 z-10">{t('actionsTable.header.actions')}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -84,7 +84,7 @@ const StandardActionsTable: React.FC<StandardActionsTableProps> = ({ control, re
                                     .map(opt => ({ label: opt.title, value: opt.id }))
                              ];
                             return (
-                                <tr key={field.id} className="border-b hover:bg-gray-50">
+                                <tr key={field.id} className="group border-b hover:bg-gray-50">
                                     <td className="px-2 py-2">
                                         <div>
                                             <input
@@ -166,11 +166,12 @@ const StandardActionsTable: React.FC<StandardActionsTableProps> = ({ control, re
                                             )}
                                         />
                                     </td>
-                                    <td className="px-2 py-2 text-center">
+                                    <td className="px-2 py-2 text-center sticky left-0 bg-white group-hover:bg-gray-50 z-10 transition-colors">
                                         <button
                                             type="button"
                                             onClick={() => remove(index)}
-                                            className="p-2 text-gray-500 hover:text-red-600 rounded-full hover:bg-red-100 transition-colors"
+                                            disabled={fields.length <= 1}
+                                            className="p-2 text-gray-500 hover:text-red-600 rounded-full hover:bg-red-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-gray-500"
                                             aria-label={t('actionsTable.deleteAriaLabel')}
                                         >
                                             <DeleteIcon className="w-5 h-5"/>

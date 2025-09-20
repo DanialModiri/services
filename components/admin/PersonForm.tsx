@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef, useMemo } from 'react';
-import { useForm, SubmitHandler, Controller, useFieldArray } from 'react-hook-form';
+// FIX: Corrected react-hook-form imports by using the 'type' keyword for type-only imports.
+import { useForm, Controller, useFieldArray, type SubmitHandler } from 'react-hook-form';
 import { useI18n } from '../../hooks/useI18n';
 import { Person, PersonType, OrganizationRoles, LegalEntityTypes, Gender, LegalEntityType, OrganizationRole, Document } from '../../types';
 import CustomSelect from './CustomSelect';
@@ -42,6 +43,27 @@ type PersonFormData = {
     address?: string;
     postalCode?: string;
     description?: string;
+};
+
+const defaultValues: PersonFormData = {
+    personType: 'REAL',
+    firstName: '',
+    lastName: '',
+    name: '',
+    nationalId: '',
+    organizationRole: 'CUSTOMER',
+    birthDate: '',
+    registrationDate: '',
+    email: '',
+    mobile: '',
+    landline: '',
+    address: '',
+    postalCode: '',
+    description: '',
+    financialYearStart: '',
+    gender: undefined,
+    legalEntityType: undefined,
+    documents: [],
 };
 
 const DocumentList: React.FC<{ control: any; personType: PersonType }> = ({ control, personType }) => {
@@ -184,27 +206,6 @@ const PersonForm: React.FC<PersonFormProps> = ({ personId, onBack, onSave, isSid
 
 
   const personType = watch('personType', personToEdit?.personType || 'REAL');
-  
-  const defaultValues: PersonFormData = {
-      personType: 'REAL',
-      firstName: '',
-      lastName: '',
-      name: '',
-      nationalId: '',
-      organizationRole: 'CUSTOMER',
-      birthDate: '',
-      registrationDate: '',
-      email: '',
-      mobile: '',
-      landline: '',
-      address: '',
-      postalCode: '',
-      description: '',
-      financialYearStart: '',
-      gender: undefined,
-      legalEntityType: undefined,
-      documents: [],
-  };
 
   useEffect(() => {
     if (personId && personToEdit) {

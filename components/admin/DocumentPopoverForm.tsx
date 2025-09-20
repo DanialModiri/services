@@ -1,6 +1,7 @@
 import React, { useEffect, useLayoutEffect, useRef, useState, useMemo } from 'react';
 import { createPortal } from 'react-dom';
-import { useForm, SubmitHandler, Controller } from 'react-hook-form';
+// FIX: Corrected react-hook-form imports by using the 'type' keyword for type-only imports.
+import { useForm, Controller, type SubmitHandler } from 'react-hook-form';
 import { useI18n } from '../../hooks/useI18n';
 import { Document, PersonType, FileFormat } from '../../types';
 import CustomSelect from './CustomSelect';

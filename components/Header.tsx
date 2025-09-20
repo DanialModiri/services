@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { Link } from '../lib/router';
 
 const Header: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -24,9 +25,16 @@ const Header: React.FC = () => {
             </a>
           ))}
         </nav>
-        <a href="#contact" className="hidden md:block bg-teal-600 text-white py-2 px-5 rounded-lg hover:bg-teal-700 transition-colors duration-300 font-semibold">
-          درخواست مشاوره
-        </a>
+        <div className="hidden md:flex items-center space-x-4 space-x-reverse">
+          <a href="#contact" className="bg-teal-600 text-white py-2 px-5 rounded-lg hover:bg-teal-700 transition-colors duration-300 font-semibold">
+            درخواست مشاوره
+          </a>
+           <Link to="/login">
+              <a className="border border-blue-600 text-blue-600 py-2 px-5 rounded-lg hover:bg-blue-600 hover:text-white transition-colors duration-300 font-semibold">
+                ورود به پنل
+              </a>
+            </Link>
+        </div>
         <div className="md:hidden">
           <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="text-gray-600 focus:outline-none">
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -42,10 +50,15 @@ const Header: React.FC = () => {
               {link.label}
             </a>
           ))}
-          <div className="px-4 mt-4">
+          <div className="px-4 mt-4 space-y-2">
              <a href="#contact" className="block text-center w-full bg-teal-600 text-white py-2 px-5 rounded-lg hover:bg-teal-700 transition-colors duration-300 font-semibold" onClick={() => setIsMenuOpen(false)}>
               درخواست مشاوره
             </a>
+            <Link to="/login">
+                <a className="block text-center w-full border border-blue-600 text-blue-600 py-2 px-5 rounded-lg hover:bg-blue-600 hover:text-white transition-colors duration-300 font-semibold" onClick={() => setIsMenuOpen(false)}>
+                  ورود به پنل
+                </a>
+            </Link>
           </div>
         </div>
       )}

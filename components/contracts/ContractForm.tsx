@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { useForm, SubmitHandler, Controller } from 'react-hook-form';
+// FIX: Corrected react-hook-form imports by using the 'type' keyword for type-only imports.
+import { useForm, Controller, useFieldArray, type SubmitHandler } from 'react-hook-form';
 import { useI18n } from '../../hooks/useI18n';
-import { Contract, ServiceAreas, ContractStatuses, Person, Service } from '../../types';
+import { Contract, ServiceAreas, ContractStatuses, Person, Service, ContractServiceItem, ContractAccessSetting } from '../../types';
 import CustomSelect from '../admin/CustomSelect';
 import CustomDatePicker from '../admin/CustomDatePicker';
 import { ChevronRightIcon } from '../icons/AppleIcons';
@@ -12,6 +13,7 @@ import { useQuery } from '@tanstack/react-query';
 import * as api from '../../api/apiService';
 import SkeletonForm from '../common/SkeletonForm';
 import ContractServicesTable from './ContractServicesTable';
+import ContractAccessSettingsTable from './ContractAccessSettingsTable';
 
 interface ContractFormProps {
   contractId: number | null;
@@ -22,7 +24,7 @@ interface ContractFormProps {
 
 type ContractFormData = Omit<Contract, 'id' | 'totalAmount'>;
 
-const newContractDefaults: ContractFormData = {
+const newContractWithDefaults: ContractFormData = {
     contractCode: '',
     title: '',
     customerId: 0,
@@ -30,14 +32,32 @@ const newContractDefaults: ContractFormData = {
     startDate: '',
     endDate: '',
     status: 'REGISTERED',
-    contractServices: [],
+    contractServices: [{
+        id: crypto.randomUUID(),
+        serviceId: null,
+        initialDurationDays: 0,
+        price: 0,
+        description: '',
+        selectedStandardActionIds: [],
+    }],
+    contractAccessSettings: [{
+        id: crypto.randomUUID(),
+        roleType: 'SERVICE_CONTACT_CUSTOMER',
+        serviceArea: 'ACCOUNTING',
+        personnelId: null,
+        notificationMethods: [],
+        mobile: '', email: ''
+    }],
 };
 
 const ContractForm: React.FC<ContractFormProps> = ({ contractId, onSave, onBack, isSidebarCollapsed }) => {
   const { t } = useI18n();
   const { register, handleSubmit, reset, formState: { errors }, control, watch, setValue } = useForm<ContractFormData>({
-      defaultValues: newContractDefaults,
+      defaultValues: contractId ? undefined : newContractWithDefaults,
   });
+
+  const { fields: serviceFields, append: appendService, remove: removeService } = useFieldArray({ control, name: "contractServices" });
+  const { fields: accessFields, append: appendAccess, remove: removeAccess } = useFieldArray({ control, name: "contractAccessSettings" });
 
   const { data: contractToEdit, isLoading: isLoadingContract } = useQuery({
     queryKey: ['contract', contractId],
@@ -45,23 +65,15 @@ const ContractForm: React.FC<ContractFormProps> = ({ contractId, onSave, onBack,
     enabled: !!contractId,
   });
 
-  const { data: customers = [], isLoading: isLoadingCustomers } = useQuery<Person[]>({
-    queryKey: ['customers'],
-    // FIX: Corrected the property name from 'fn' to 'queryFn' for the useQuery hook. This resolves both the overload error and the subsequent type inference issue for 'customers'.
-    queryFn: api.getCustomers,
-  });
-  
-  const { data: allServices = [], isLoading: isLoadingServices } = useQuery<Service[]>({
-    queryKey: ['services'],
-    queryFn: () => api.getServices(),
-  });
+  const { data: customers = [], isLoading: isLoadingCustomers } = useQuery<Person[]>({ queryKey: ['customers'], queryFn: api.getCustomers });
+  const { data: allServices = [], isLoading: isLoadingServices } = useQuery<Service[]>({ queryKey: ['services'], queryFn: () => api.getServices() });
   
   const inFormActionsRef = useRef<HTMLDivElement>(null);
   const [isStickyBarVisible, setIsStickyBarVisible] = useState(false);
+
   const isLoading = isLoadingContract || isLoadingCustomers || isLoadingServices;
-
   const startDate = watch('startDate');
-
+  
   useEffect(() => {
     const observer = new IntersectionObserver(([entry]) => setIsStickyBarVisible(!entry.isIntersecting), { root: null, threshold: 0 });
     const currentRef = inFormActionsRef.current;
@@ -72,13 +84,12 @@ const ContractForm: React.FC<ContractFormProps> = ({ contractId, onSave, onBack,
   useEffect(() => {
     if (contractId && contractToEdit) {
       reset(contractToEdit);
-    } else {
-      reset(newContractDefaults);
+    } else if (!contractId) {
+      reset(newContractWithDefaults);
     }
   }, [contractId, contractToEdit, reset]);
 
   const handleSave: SubmitHandler<ContractFormData> = (data) => {
-    // Backend will calculate total amount from services
     const dataToSave = { ...data, totalAmount: 0 }; 
     if (contractId) {
         onSave({ ...dataToSave, id: contractId });
@@ -104,83 +115,45 @@ const ContractForm: React.FC<ContractFormProps> = ({ contractId, onSave, onBack,
   );
 
   const renderFormContent = () => {
-    if (isLoading && contractId) {
-      return <SkeletonForm />;
-    }
-
+    if (isLoading && contractId) return <SkeletonForm />;
     return (
       <>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-5">
-            <Input 
-                containerClassName="lg:col-span-3"
-                label={t("contractForm.label.title")} id="title" error={errors.title} {...register("title", { required: t('contractForm.error.titleRequired') })} 
-            />
-            
-            <Controller
-                name="customerId"
-                control={control}
-                rules={{ required: t('contractForm.error.customerRequired'), validate: val => val > 0 || t('contractForm.error.customerRequired') }}
-                render={({ field, fieldState }) => <CustomSelect 
-                    label={t('contractForm.label.customer')}
-                    options={translatedOptions.customers} 
-                    value={String(field.value)} 
-                    onChange={val => field.onChange(Number(val))}
-                    error={fieldState.error}
-                    placeholder='مشتری را انتخاب کنید'
-                />}
-            />
-
-            <Input 
-                label={t("contractForm.label.contractCode")} id="contractCode" error={errors.contractCode} {...register("contractCode", { required: t('contractForm.error.codeRequired') })} 
-            />
-
-             <Controller
-              name="serviceArea"
-              control={control}
-              rules={{ required: t('contractForm.error.areaRequired') }}
-              render={({ field, fieldState }) => <CustomSelect label={t('contractForm.label.serviceArea')} options={translatedOptions.areas} value={field.value} onChange={field.onChange} error={fieldState.error} />}
-            />
-
-            <Controller 
-                name="startDate" 
-                control={control} 
-                rules={{ required: t('contractForm.error.startDateRequired') }}
-                render={({ field }) => <CustomDatePicker labelId="contractForm.label.startDate" value={field.value} onChange={field.onChange} />} 
-            />
-            
+            <Input containerClassName="lg:col-span-3" label={t("contractForm.label.title")} id="title" error={errors.title} {...register("title", { required: t('contractForm.error.titleRequired') })} />
+            <Controller name="customerId" control={control} rules={{ required: t('contractForm.error.customerRequired'), validate: val => val > 0 || t('contractForm.error.customerRequired') }} render={({ field, fieldState }) => <CustomSelect label={t('contractForm.label.customer')} options={translatedOptions.customers} value={String(field.value)} onChange={val => field.onChange(Number(val))} error={fieldState.error} placeholder='مشتری را انتخاب کنید' />} />
+            <Input label={t("contractForm.label.contractCode")} id="contractCode" error={errors.contractCode} {...register("contractCode", { required: t('contractForm.error.codeRequired') })} />
+            <Controller name="serviceArea" control={control} rules={{ required: t('contractForm.error.areaRequired') }} render={({ field, fieldState }) => <CustomSelect label={t('contractForm.label.serviceArea')} options={translatedOptions.areas} value={field.value} onChange={field.onChange} error={fieldState.error} />} />
+            <Controller name="startDate" control={control} rules={{ required: t('contractForm.error.startDateRequired') }} render={({ field }) => <CustomDatePicker labelId="contractForm.label.startDate" value={field.value} onChange={field.onChange} />} />
             <div>
-                <Controller 
-                    name="endDate" 
-                    control={control} 
-                    rules={{ 
-                        required: t('contractForm.error.endDateRequired'),
-                        validate: value => !startDate || !value || new Date(value) > new Date(startDate) || t('contractForm.error.endDateAfterStart'),
-                    }}
-                    render={({ field }) => <CustomDatePicker labelId="contractForm.label.endDate" value={field.value} onChange={field.onChange} />} 
-                />
+                <Controller name="endDate" control={control} rules={{ required: t('contractForm.error.endDateRequired'), validate: value => !startDate || !value || new Date(value) > new Date(startDate) || t('contractForm.error.endDateAfterStart'), }} render={({ field }) => <CustomDatePicker labelId="contractForm.label.endDate" value={field.value} onChange={field.onChange} />} />
                 {errors.endDate && <p className="mt-1 text-sm text-red-600">{errors.endDate.message}</p>}
             </div>
-
-
-            <Controller
-              name="status"
-              control={control}
-              rules={{ required: t('contractForm.error.statusRequired') }}
-              render={({ field, fieldState }) => <CustomSelect label={t('contractForm.label.status')} options={translatedOptions.statuses} value={field.value} onChange={field.onChange} error={fieldState.error} />}
-            />
+            <Controller name="status" control={control} rules={{ required: t('contractForm.error.statusRequired') }} render={({ field, fieldState }) => <CustomSelect label={t('contractForm.label.status')} options={translatedOptions.statuses} value={field.value} onChange={field.onChange} error={fieldState.error} />} />
         </div>
 
-        <div className="border-t my-6"></div>
+        <div className="border-t pt-8 mt-8">
+            <div>
+                 <ContractServicesTable 
+                    control={control} 
+                    register={register} 
+                    setValue={setValue} 
+                    allServices={allServices} 
+                    fields={serviceFields} 
+                    append={appendService}
+                    remove={removeService} />
+            </div>
+            
+            <div className="mt-8">
+                <ContractAccessSettingsTable 
+                    control={control} 
+                    setValue={setValue} 
+                    fields={accessFields} 
+                    append={appendAccess}
+                    remove={removeAccess} />
+            </div>
+        </div>
         
-        <ContractServicesTable
-          control={control}
-          register={register}
-          errors={errors}
-          setValue={setValue}
-          allServices={allServices}
-        />
-
-        <div ref={inFormActionsRef} className="border-t pt-6 mt-6">
+        <div ref={inFormActionsRef} className="pt-6 mt-6">
           {actionButtonsGroup}
         </div>
       </>
@@ -203,6 +176,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ contractId, onSave, onBack,
           {renderFormContent()}
         </Card>
 
+        {/* Sticky Bottom Action Bar */}
         <div 
           className={`fixed bottom-0 left-0 z-20 transition-all duration-300 ease-in-out ${
             isSidebarCollapsed ? 'right-20' : 'right-64'

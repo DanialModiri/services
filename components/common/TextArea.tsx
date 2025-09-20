@@ -1,5 +1,6 @@
 import React from 'react';
-import { FieldError } from 'react-hook-form';
+// FIX: Corrected react-hook-form imports by using the 'type' keyword for type-only imports.
+import { type FieldError } from 'react-hook-form';
 
 interface TextAreaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
   label: string;

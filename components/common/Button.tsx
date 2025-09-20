@@ -27,9 +27,11 @@ const sizeClasses: Record<ButtonSize, string> = {
 };
 
 
-const Button: React.FC<ButtonProps> = ({ children, variant = 'primary', size = 'md', icon, className = '', ...props }) => {
+// FIX: Wrapped Button component in React.forwardRef to allow passing a ref to it.
+const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({ children, variant = 'primary', size = 'md', icon, className = '', ...props }, ref) => {
   return (
     <button
+      ref={ref}
       className={`${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]} ${className}`}
       {...props}
     >
@@ -37,6 +39,8 @@ const Button: React.FC<ButtonProps> = ({ children, variant = 'primary', size = '
       <span>{children}</span>
     </button>
   );
-};
+});
+
+Button.displayName = 'Button';
 
 export default Button;

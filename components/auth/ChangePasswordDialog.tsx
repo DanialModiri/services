@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
-import { useForm, SubmitHandler } from 'react-hook-form';
+// FIX: Corrected react-hook-form imports by using the 'type' keyword for type-only imports.
+import { useForm, type SubmitHandler } from 'react-hook-form';
 import { useI18n } from '../../hooks/useI18n';
 import { useAuth } from '../../hooks/useAuth';
 import * as api from '../../api/apiService';
@@ -77,6 +78,7 @@ const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({ isOpen, onC
         notify(t('changePasswordDialog.notification.success'), 'success');
         handleClose();
     } catch (error) {
+        console.log(error);
         if (error instanceof Error && error.message.includes('Incorrect current password')) {
              setError('currentPassword_sent', { type: 'manual', message: t('changePasswordDialog.error.currentPasswordIncorrect') });
         } else {

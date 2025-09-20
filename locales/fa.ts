@@ -122,6 +122,8 @@ export const messages = {
   "serviceCard.currency": "ریال",
   "serviceCard.durationInfo": "مدت پیش‌فرض: {duration} ماه",
   "serviceCard.oneTimeService": "خدمت یکباره",
+  "serviceCard.contractCount": "تعداد قراردادها: {count}",
+  "serviceCard.filterContracts": "فیلتر قراردادها",
 
   "serviceDetail.title.edit": "ویرایش خدمت",
   "serviceDetail.title.add": "ایجاد خدمت جدید",
@@ -195,6 +197,22 @@ export const messages = {
   "contractForm.error.endDateRequired": "تاریخ پایان الزامی است",
   "contractForm.error.endDateAfterStart": "تاریخ پایان باید بعد از تاریخ شروع باشد",
   "contractForm.error.statusRequired": "وضعیت قرارداد الزامی است",
+  "contractForm.tab.services": "خدمات قرارداد",
+  "contractForm.tab.accessSettings": "تنظیمات دسترسی",
+
+  "accessSettingsTable.title": "تنظیمات دسترسی به زیرساخت فناوری اطلاعات",
+  "accessSettingsTable.add": "افزودن ردیف",
+  "accessSettingsTable.header.roleType": "نوع نقش",
+  "accessSettingsTable.header.serviceArea": "حوزه خدمت",
+  "accessSettingsTable.header.fullName": "نام و نام خانوادگی",
+  "accessSettingsTable.header.position": "سمت",
+  "accessSettingsTable.header.notificationMethod": "راهکار اطلاع رسانی",
+  "accessSettingsTable.header.systemUser": "کاربر سامانه",
+  "accessSettingsTable.header.mobile": "شماره همراه",
+  "accessSettingsTable.header.email": "پست الکترونیک",
+  "accessSettingsTable.header.actions": "عملیات",
+  "accessSettingsTable.notFound": "هیچ تنظیماتی برای دسترسی ثبت نشده است.",
+  "accessSettingsTable.placeholder.selectPerson": "انتخاب شخص...",
 
   "pagination.pageInfo": "صفحه {currentPage} از {totalPages}",
   "pagination.prev": "صفحه قبل",
@@ -250,6 +268,18 @@ export const messages = {
   "confirmDialog.deleteContractTitle": "حذف قرارداد",
   "confirmDialog.deleteContractMessage": "آیا از حذف این قرارداد اطمینان دارید؟ این عملیات غیرقابل بازگشت است.",
 
+  "filter.title": "فیلترها",
+  "filter.apply": "اعمال فیلتر",
+  "filter.clear": "پاک کردن",
+  "filter.services": "خدمات",
+  "filter.serviceArea": "حوزه خدمت",
+  "filter.startDate": "از تاریخ",
+  "filter.endDate": "تا تاریخ",
+  "filter.chips.clearAll": "پاک کردن همه فیلترها",
+  "filter.chips.label.service": "خدمت",
+  "filter.chips.label.area": "حوزه",
+  "filter.chips.label.dateRange": "بازه تاریخ",
+
   "enum.personType.REAL": "حقیقی",
   "enum.personType.LEGAL": "حقوقی",
   "enum.gender.MALE": "مرد",
@@ -298,5 +328,16 @@ export const messages = {
   "enum.contractStatus.IN_PROGRESS": "درجریان",
   "enum.contractStatus.FINISHED": "خاتمه",
   "enum.contractStatus.PENDING_FINISH": "در انتظار خاتمه",
-  "enum.contractStatus.CLOSED": "مختومه"
+  "enum.contractStatus.CLOSED": "مختومه",
+
+  "enum.contractRoleType.SERVICE_CONTACT_CUSTOMER": "رابط خدمت (مشتری)",
+  "enum.contractRoleType.CONTRACT_CONTACT_CUSTOMER": "رابط قرارداد (مشتری)",
+  "enum.contractRoleType.SUPERVISOR_CUSTOMER": "ناظر (مشتری)",
+  "enum.contractRoleType.SERVICE_EXPERT_ORG": "کارشناس خدمت (سازمان)",
+  "enum.contractRoleType.CONTRACT_EXPERT_ORG": "کارشناس قرارداد (سازمان)",
+  "enum.contractRoleType.SUPERVISOR_ORG": "ناظر (سازمان)",
+
+  "enum.notificationMethod.PORTAL": "اعلان های پرتال",
+  "enum.notificationMethod.SMS": "پیامک",
+  "enum.notificationMethod.EMAIL": "پست الکترونیک"
 };
