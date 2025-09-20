@@ -4,6 +4,38 @@ import { Contract, ContractStatus, Person, ServiceArea } from '../../types';
 import { EditIcon, DeleteIcon } from '../icons/AppleIcons';
 import Pagination from '../admin/Pagination';
 
+// Helper function to convert Gregorian YYYY-MM-DD to Jalali YYYY/MM/DD for display
+const toJalali = (gy: number, gm: number, gd: number): [number, number, number] => {
+    const g_d_m = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334];
+    let jy = (gy <= 1600) ? 0 : 979;
+    gy -= (gy <= 1600) ? 621 : 1600;
+    const gy2 = (gm > 2) ? (gy + 1) : gy;
+    let days = 365 * gy + Math.floor((gy2 + 3) / 4) - Math.floor((gy2 + 99) / 100) + Math.floor((gy2 + 399) / 400) - 80 + gd + g_d_m[gm - 1];
+    jy += 33 * Math.floor(days / 12053);
+    days %= 12053;
+    jy += 4 * Math.floor(days / 1461);
+    days %= 1461;
+    if (days > 365) {
+        jy += Math.floor((days - 1) / 365);
+        days = (days - 1) % 365;
+    }
+    const jm = (days < 186) ? 1 + Math.floor(days / 31) : 7 + Math.floor((days - 186) / 30);
+    const jd = 1 + ((days < 186) ? (days % 31) : ((days - 186) % 30));
+    return [jy, jm, jd];
+}
+
+const toJalaliDisplay = (gregorianDate?: string): string | undefined => {
+    if (!gregorianDate || gregorianDate.split('-').length < 3) return undefined;
+    try {
+        const [gy, gm, gd] = gregorianDate.split('-').map(Number);
+        if(isNaN(gy) || isNaN(gm) || isNaN(gd)) return gregorianDate;
+        const [jy, jm, jd] = toJalali(gy, gm, gd);
+        return `${jy}/${String(jm).padStart(2, '0')}/${String(jd).padStart(2, '0')}`;
+    } catch(e) {
+        return gregorianDate; // Fallback to original on error
+    }
+};
+
 const formatPrice = (price: number): string => {
     return new Intl.NumberFormat('fa-IR').format(price);
 };
@@ -35,24 +67,43 @@ const TimeProgressBar: React.FC<{ startDate: string, endDate: string }> = ({ sta
     const start = new Date(startDate).getTime();
     const end = new Date(endDate).getTime();
     const now = new Date().getTime();
-
-    const totalDuration = Math.max(1, end - start);
-    const elapsedDuration = Math.max(0, now - start);
-    
-    let progress = Math.min(100, (elapsedDuration / totalDuration) * 100);
-    if (now > end) progress = 100;
     
     const remainingDays = Math.max(0, Math.ceil((end - now) / (1000 * 60 * 60 * 24)));
+    const jalaliStart = toJalaliDisplay(startDate);
+    const jalaliEnd = toJalaliDisplay(endDate);
+    const dateRange = `(${jalaliStart} تا ${jalaliEnd})`;
 
-    let bgColor = 'bg-blue-500';
-    if (progress > 85) bgColor = 'bg-orange-500';
-    if (progress >= 100) bgColor = 'bg-green-500';
+    let statusText: React.ReactNode;
+    let progress = 100;
+    let bgColor = 'bg-green-500';
+
+    if (remainingDays <= 0) {
+        statusText = (
+            <span className="font-bold text-green-600">
+                {t('contractCard.finished')}
+                <span className="font-normal text-gray-500 text-xs mr-1">{dateRange}</span>
+            </span>
+        );
+    } else {
+        const totalDuration = Math.max(1, end - start);
+        const elapsedDuration = Math.max(0, now - start);
+        progress = Math.min(100, (elapsedDuration / totalDuration) * 100);
+        bgColor = 'bg-blue-500';
+        if (progress > 85) bgColor = 'bg-orange-500';
+
+        statusText = (
+            <span className="text-gray-500">
+                {t('contractCard.remaining')}: <span className="font-bold text-gray-700">{remainingDays}</span> {t('contractCard.days')}
+                <span className="text-xs mr-1">{dateRange}</span>
+            </span>
+        );
+    }
     
     return (
         <div>
-            <div className="flex justify-between items-center mb-1 text-sm">
+            <div className="flex justify-between items-baseline mb-1 text-sm flex-wrap gap-x-2">
                 <span className="font-semibold text-gray-700">{t('contractCard.duration')}</span>
-                <span className="text-gray-500">{t('contractCard.remaining')}: <span className="font-bold text-gray-700">{remainingDays}</span> {t('contractCard.days')}</span>
+                <span className="text-left">{statusText}</span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2.5">
                 <div className={`${bgColor} h-2.5 rounded-full transition-all duration-500`} style={{ width: `${progress}%` }}></div>
@@ -79,7 +130,7 @@ const ContractCard: React.FC<ContractCardProps> = ({ contract, customerName, onE
       <div className="flex justify-between items-start mb-4">
         <div className="flex-grow min-w-0">
           <h3 className="text-xl font-bold text-gray-900 truncate" title={contract.title}>{contract.title}</h3>
-          <p className="text-sm text-gray-500 font-mono">{contract.contractCode}</p>
+          <p className="text-sm text-gray-500">{contract.contractCode}</p>
         </div>
         <div className="flex items-center space-x-1 flex-shrink-0">
           <button onClick={onEdit} className="p-2.5 text-gray-500 hover:text-blue-600 rounded-full hover:bg-gray-100 transition-all duration-200" aria-label={editAriaLabel}><EditIcon /></button>

@@ -41,7 +41,7 @@ const ServiceCard: React.FC<{ service: Service; onEdit: () => void; onDelete: ()
       <div className="flex justify-between items-start mb-4">
         <div className="flex-grow min-w-0">
           <h3 className="text-xl font-bold text-gray-900 truncate" title={service.title}>{service.title}</h3>
-          <p className="text-sm text-gray-500 font-mono">{service.code}</p>
+          <p className="text-sm text-gray-500">{service.code}</p>
         </div>
         <div className="flex items-center space-x-1 flex-shrink-0">
           <button onClick={onEdit} className="p-2.5 text-gray-500 hover:text-blue-600 rounded-full hover:bg-gray-100 transition-all duration-200" aria-label={editAriaLabel}><EditIcon /></button>

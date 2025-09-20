@@ -78,12 +78,12 @@ const PersonCard: React.FC<{ person: Person; isExpanded: boolean; onToggle: () =
     );
   };
   
-  const InfoRow: React.FC<{ labelId: string; value?: string; mono?: boolean }> = ({ labelId, value, mono = false }) => {
+  const InfoRow: React.FC<{ labelId: string; value?: string; }> = ({ labelId, value }) => {
     if (!value) return null;
     return (
         <div className="grid grid-cols-[auto,1fr] gap-x-2">
             <dt className="text-gray-500">{t(labelId)}:</dt>
-            <dd className={`text-gray-800 text-left ${mono ? 'tabular-nums' : ''}`}>{value}</dd>
+            <dd className="text-gray-800 text-left">{value}</dd>
         </div>
     );
   }
@@ -113,10 +113,10 @@ const PersonCard: React.FC<{ person: Person; isExpanded: boolean; onToggle: () =
 
       {/* Details Grid */}
       <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 text-base border-t border-gray-200/80 pt-4">
-        <InfoRow labelId="personCard.nationalId" value={person.nationalId} mono />
+        <InfoRow labelId="personCard.nationalId" value={person.nationalId} />
         <InfoRow labelId="personCard.orgRole" value={t(`enum.orgRole.${person.organizationRole}`)} />
-        {person.personType === 'REAL' && <InfoRow labelId="personCard.birthDate" value={toJalaliDisplay(person.birthDate)} mono />}
-        {person.personType === 'LEGAL' && <InfoRow labelId="personCard.regDate" value={toJalaliDisplay(person.registrationDate)} mono />}
+        {person.personType === 'REAL' && <InfoRow labelId="personCard.birthDate" value={toJalaliDisplay(person.birthDate)} />}
+        {person.personType === 'LEGAL' && <InfoRow labelId="personCard.regDate" value={toJalaliDisplay(person.registrationDate)} />}
       </div>
 
        {/* Accordion for Contact Info */}

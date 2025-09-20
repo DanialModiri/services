@@ -176,6 +176,7 @@ export const messages = {
   "contractCard.duration": "مدت قرارداد",
   "contractCard.remaining": "باقیمانده",
   "contractCard.days": "روز",
+  "contractCard.finished": "به پایان رسیده",
 
   "contractForm.title.edit": "ویرایش قرارداد",
   "contractForm.title.add": "افزودن قرارداد جدید",

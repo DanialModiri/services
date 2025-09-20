@@ -109,7 +109,7 @@ const ServiceRow: React.FC<Omit<ContractServicesTableProps, 'errors'> & { index:
                     )}
                 />
             </td>
-            <td className="px-2 py-3 text-gray-500 font-mono"><div className="pt-2.5">{serviceCode}</div></td>
+            <td className="px-2 py-3 text-gray-500"><div className="pt-2.5">{serviceCode}</div></td>
             <td className="px-2 py-3 text-gray-500"><div className="pt-2.5">{serviceArea ? t(`enum.serviceArea.${serviceArea}`) : ''}</div></td>
             <td className="px-2 py-3">
                 <input
@@ -157,7 +157,7 @@ const ServiceRow: React.FC<Omit<ContractServicesTableProps, 'errors'> & { index:
             <td className="px-2 py-3">
                 <Button type="button" variant="ghost" size="sm">تمدید</Button>
             </td>
-            <td className="px-2 py-3 font-mono text-gray-500"><div className="pt-2.5">{endDateDisplay}</div></td>
+            <td className="px-2 py-3 text-gray-500"><div className="pt-2.5">{endDateDisplay}</div></td>
             <td className="px-2 py-3 text-center">
                  <button
                     type="button"
