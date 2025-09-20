@@ -123,7 +123,7 @@ export const messages = {
   "serviceCard.durationInfo": "مدت پیش‌فرض: {duration} ماه",
   "serviceCard.oneTimeService": "خدمت یکباره",
   "serviceCard.contractCount": "تعداد قراردادها: {count}",
-  "serviceCard.filterContracts": "فیلتر قراردادها",
+  "serviceCard.filterContracts": "مشاهده قراردادها",
 
   "serviceDetail.title.edit": "ویرایش خدمت",
   "serviceDetail.title.add": "ایجاد خدمت جدید",

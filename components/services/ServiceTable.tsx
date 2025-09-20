@@ -3,6 +3,9 @@ import { useI18n } from '../../hooks/useI18n';
 import { Service, ServiceArea, ServiceStatus, Contract } from '../../types';
 import { EditIcon, DeleteIcon, FilterIcon } from '../icons/AppleIcons';
 import Pagination from '../admin/Pagination';
+import { useContractFilter } from '../../hooks/useContractFilter';
+import { useLocation } from '../../lib/router';
+import Button from '../common/Button';
 
 const formatPrice = (price: number): string => {
     return new Intl.NumberFormat('fa-IR').format(price);
@@ -38,8 +41,15 @@ const ServiceCard: React.FC<{
   onDelete: () => void; 
 }> = ({ service, contractCount, onEdit, onDelete }) => {
   const { t } = useI18n();
+  const { setFilters } = useContractFilter();
+  const [, setLocation] = useLocation();
   const editAriaLabel = t('serviceCard.editAriaLabel', { title: service.title });
   const deleteAriaLabel = t('serviceCard.deleteAriaLabel', { title: service.title });
+
+  const handleFilterContracts = () => {
+    setFilters({ serviceIds: [service.id] });
+    setLocation('/app/contracts');
+  };
 
   return (
     <div className="bg-white/80 backdrop-blur-xl border border-gray-200/80 shadow-lg rounded-3xl p-5 transition-all duration-300 flex flex-col h-full">
@@ -76,9 +86,21 @@ const ServiceCard: React.FC<{
           </div>
       </div>
       
-       {/* Contract Info */}
+       {/* Contract Info & Actions */}
        <div className="border-t border-gray-200/80 pt-3 mt-4 space-y-2">
-            <p className="text-sm text-gray-600">{t('serviceCard.contractCount', { count: contractCount })}</p>
+            <div className="flex justify-between items-center">
+                <p className="text-sm text-gray-600">{t('serviceCard.contractCount', { count: contractCount })}</p>
+                {contractCount > 0 && (
+                    <Button 
+                        onClick={handleFilterContracts} 
+                        variant="ghost" 
+                        size="sm" 
+                        icon={<FilterIcon className="w-4 h-4" />}
+                    >
+                        {t('serviceCard.filterContracts')}
+                    </Button>
+                )}
+            </div>
        </div>
 
       {/* Footer */}

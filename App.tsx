@@ -7,7 +7,7 @@ import AdminPanel from './components/admin/AdminPanel';
 import DashboardPage from './components/dashboard/DashboardPage';
 import ServicePanel from './components/services/ServicePanel';
 import ContractPanel from './components/contracts/ContractPanel';
-import LandingPage from './LandingPage';
+import { ContractFilterProvider } from './hooks/useContractFilter';
 
 const App: React.FC = () => {
   const { user, isLoading } = useAuth();
@@ -23,39 +23,40 @@ const App: React.FC = () => {
 
   return (
     <Switch>
-      <Route path="/" component={LandingPage} />
       <Route path="/login">
         { user ? <Redirect to="/app/dashboard" /> : <LoginPage /> }
       </Route>
 
       <Route path="/app/:rest*">
         { !user ? <Redirect to="/login" /> : (
-            <MainLayout
-              isSidebarCollapsed={isSidebarCollapsed}
-              onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-            >
-              <Switch>
-                <Route path="/app/dashboard" component={DashboardPage} />
-                <Route path="/app/people">
-                  <AdminPanel isSidebarCollapsed={isSidebarCollapsed} />
-                </Route>
-                <Route path="/app/services">
-                  <ServicePanel isSidebarCollapsed={isSidebarCollapsed} />
-                </Route>
-                <Route path="/app/contracts">
-                  <ContractPanel isSidebarCollapsed={isSidebarCollapsed} />
-                </Route>
-                <Route path="/app">
-                  <Redirect to="/app/dashboard" />
-                </Route>
-              </Switch>
-            </MainLayout>
+            <ContractFilterProvider>
+              <MainLayout
+                isSidebarCollapsed={isSidebarCollapsed}
+                onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+              >
+                <Switch>
+                  <Route path="/app/dashboard" component={DashboardPage} />
+                  <Route path="/app/people">
+                    <AdminPanel isSidebarCollapsed={isSidebarCollapsed} />
+                  </Route>
+                  <Route path="/app/services">
+                    <ServicePanel isSidebarCollapsed={isSidebarCollapsed} />
+                  </Route>
+                  <Route path="/app/contracts">
+                    <ContractPanel isSidebarCollapsed={isSidebarCollapsed} />
+                  </Route>
+                  <Route path="/app">
+                    <Redirect to="/app/dashboard" />
+                  </Route>
+                </Switch>
+              </MainLayout>
+            </ContractFilterProvider>
           )
         }
       </Route>
 
       <Route>
-        <Redirect to="/" />
+        { user ? <Redirect to="/app/dashboard" /> : <Redirect to="/login" /> }
       </Route>
     </Switch>
   );

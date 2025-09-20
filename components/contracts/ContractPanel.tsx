@@ -1,16 +1,19 @@
 import React, { useState, useMemo } from 'react';
 import { useI18n } from '../../hooks/useI18n';
-import { Contract } from '../../types';
+import { Contract, ContractFilters, Service } from '../../types';
 import ContractTable from './ContractTable';
 import ContractForm from './ContractForm';
 import PageHeader from '../common/PageHeader';
 import Button from '../common/Button';
-import { PlusIcon } from '../icons/AppleIcons';
+import { PlusIcon, FilterIcon } from '../icons/AppleIcons';
 import * as api from '../../api/apiService';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNotifier } from '../../hooks/useNotifier';
 import { useConfirm } from '../../hooks/useConfirm';
 import SkeletonCard from '../common/SkeletonCard';
+import { useContractFilter } from '../../hooks/useContractFilter';
+import ContractFilterPopover from './ContractFilterPopover';
+import FilterChips from '../common/FilterChips';
 
 interface ContractPanelProps {
   isSidebarCollapsed: boolean;
@@ -26,16 +29,21 @@ const ContractPanel: React.FC<ContractPanelProps> = ({ isSidebarCollapsed }) => 
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 6;
+
+  const { filters, setFilters } = useContractFilter();
+  const [isFilterPopoverOpen, setIsFilterPopoverOpen] = useState(false);
+  const filterButtonRef = React.useRef<HTMLButtonElement>(null);
   
   const { data: contracts = [], isLoading, isError, isFetching } = useQuery<Contract[]>({
-    queryKey: ['contracts', searchTerm],
-    queryFn: () => api.getContracts(searchTerm),
+    queryKey: ['contracts', searchTerm, filters],
+    queryFn: () => api.getContracts(searchTerm, filters),
   });
 
   const { data: peopleData } = useQuery({ queryKey: ['people', ''], queryFn: () => api.getPeople('') });
+  const { data: allServices = [] } = useQuery<Service[]>({ queryKey: ['services', ''], queryFn: () => api.getServices('') });
 
   const handleRefresh = () => {
-    queryClient.invalidateQueries({ queryKey: ['contracts', searchTerm] });
+    queryClient.invalidateQueries({ queryKey: ['contracts', searchTerm, filters] });
   };
   
   const addContractMutation = useMutation({
@@ -93,6 +101,11 @@ const ContractPanel: React.FC<ContractPanelProps> = ({ isSidebarCollapsed }) => 
     setCurrentPage(1);
   };
 
+  const handleApplyFilters = (newFilters: ContractFilters) => {
+    setFilters(newFilters);
+    setCurrentPage(1);
+  };
+
   const paginatedContracts = useMemo(() => {
       const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
       return contracts.slice(startIndex, startIndex + ITEMS_PER_PAGE);
@@ -128,21 +141,36 @@ const ContractPanel: React.FC<ContractPanelProps> = ({ isSidebarCollapsed }) => 
       );
     }
     return (
-      <ContractTable
-        contracts={paginatedContracts}
-        people={peopleData || []}
-        onEdit={(contract) => setActiveContractId(contract.id)}
-        onDelete={handleDeleteContract}
-        currentPage={currentPage}
-        totalPages={totalPages}
-        onPageChange={setCurrentPage}
-        totalItems={contracts.length}
-      />
+      <>
+        <FilterChips 
+          filters={filters} 
+          onFilterChange={handleApplyFilters} 
+          allServices={allServices} 
+        />
+        <ContractTable
+          contracts={paginatedContracts}
+          people={peopleData || []}
+          onEdit={(contract) => setActiveContractId(contract.id)}
+          onDelete={handleDeleteContract}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+          totalItems={contracts.length}
+        />
+      </>
     );
   };
   
   const pageActions = (
     <div className="flex items-center gap-2">
+        <Button 
+          ref={filterButtonRef}
+          onClick={() => setIsFilterPopoverOpen(true)} 
+          variant="ghost" 
+          icon={<FilterIcon />}
+        >
+          {t('filter.title')}
+        </Button>
         <Button onClick={() => setActiveContractId('new')} icon={<PlusIcon />}>
           {t('contractsPanel.newContract')}
         </Button>
@@ -163,6 +191,13 @@ const ContractPanel: React.FC<ContractPanelProps> = ({ isSidebarCollapsed }) => 
       
       {renderContent()}
 
+      <ContractFilterPopover
+        isOpen={isFilterPopoverOpen}
+        onClose={() => setIsFilterPopoverOpen(false)}
+        onApply={handleApplyFilters}
+        initialFilters={filters}
+        anchorEl={filterButtonRef.current}
+      />
     </div>
   );
 };
